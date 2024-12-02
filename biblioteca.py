@@ -65,7 +65,7 @@ def crear_fondo_transparente(TABLERO_ANCHO:int, TABLERO_ALTO:int, BLANCO:tuple) 
 
 def dibujar_lineas(ventana: pygame.display, TAMANIO_TABLERO:int, NEGRO:tuple,
                     MARGEN_IZQUIERDO:int, MARGEN_SUPERIOR:int, tamanio_celda:int,
-                      TABLERO_ANCHO:int, TABLERO_ALTO:int) -> None:
+                    TABLERO_ANCHO:int, TABLERO_ALTO:int) -> None:
     '''
     Dibuja las líneas de la cuadrícula en el tablero de juego.
 
@@ -216,7 +216,7 @@ def resaltar_celdas(ventana: pygame.display, fila: int, col: int, cantidad:str, 
                               + col * tamanio_celda, MARGEN_SUPERIOR 
                               + fila * tamanio_celda, tamanio_celda, tamanio_celda))
 
-def manejar_entrada(fila: int, col: int, sudoku:list[list]) -> int:
+def manejar_entrada(fila: int, col: int, sudoku:list[list], matriz_booleana:list[list]) -> int:
     '''
     Captura las teclas presionadas para ingresar o borrar números en el tablero de Sudoku.
     Permite asignar números del 1 al 9 a una celda seleccionada y borrar su contenido.
@@ -236,21 +236,21 @@ def manejar_entrada(fila: int, col: int, sudoku:list[list]) -> int:
     cambio_realizado = False # Bandera para indicar si se realizó un cambio en el tablero
 
     # Verificar teclas numéricas del 1 al 9
-    for i in range(1, 10):
-        if teclas[pygame.K_1 + (i - 1)]: # Las teclas son del K_1 al K_9
-            sudoku[fila][col] = i
-            resultado = i # Actualiza numero ingresado
-            cambio_realizado = True # Indica que hubo cambio
-            break # Sale del bucle para solo permitir un cambio a la vez
+    if not matriz_booleana[fila][col]:
+        for i in range(1, 10):
+            if teclas[pygame.K_1 + (i - 1)]: # Las teclas son del K_1 al K_9
+                sudoku[fila][col] = i
+                resultado = i # Actualiza numero ingresado
+                cambio_realizado = True # Indica que hubo cambio
+                break # Sale del bucle para solo permitir un cambio a la vez
 
-    # Verificar si se presionó la tecla DELETE
-    if teclas[pygame.K_DELETE]: 
-        sudoku[fila][col] = 0 # Se elimina el contenido
-        resultado = 0 
+        # Verificar si se presionó la tecla DELETE
+        if teclas[pygame.K_DELETE]: 
+            sudoku[fila][col] = 0 # Se elimina el contenido
+            resultado = 0 
 
     # Devuelve el número ingresado (o -1 si no hubo cambio) y el estado de cambio.
     return resultado, cambio_realizado
-
 
 
 def dibujar_tablero(ventana: pygame.display, sudoku: list[list], tablero_lleno:list[list],
@@ -307,8 +307,8 @@ def dibujar_tablero(ventana: pygame.display, sudoku: list[list], tablero_lleno:l
         fila, col = celda_seleccionada
         if not matriz_booleana[fila][col]: # Si la celda no es fija
             resaltar_celdas(ventana, fila, col, "todas", sudoku, tablero_lleno, CELESTE, AZUL_CLARO, GRIS_OSCURO,
-                        ROSA, ROSA_CLARO, MARGEN_IZQUIERDO, MARGEN_SUPERIOR, tamanio_celda)
-            manejar_entrada(fila, col, sudoku)
+                        ROSA, ROSA_CLARO, MARGEN_IZQUIERDO, MARGEN_SUPERIOR, tamanio_celda) # Si podes escribir en la celda resalta azul o rosa la incorrecta
+            manejar_entrada(fila, col, sudoku, matriz_booleana)
         else: # Si la celda es fija
             resaltar_celdas(ventana, fila, col, "una", sudoku, tablero_lleno, CELESTE, AZUL_CLARO, GRIS_OSCURO,
                         ROSA, ROSA_CLARO, MARGEN_IZQUIERDO, MARGEN_SUPERIOR, tamanio_celda) # Resalta con gris las que no estan permitidas modificar
@@ -321,7 +321,7 @@ def dibujar_tablero(ventana: pygame.display, sudoku: list[list], tablero_lleno:l
             dibujar_numero(ventana, sudoku[fila][col], fila, col, matriz_booleana, sudoku, tablero_lleno, fuente_numeros, NEGRO, ROJO, AZUL, MARGEN_IZQUIERDO, MARGEN_SUPERIOR, tamanio_celda)
 
 
-def sumar_errores(celda_seleccionada: tuple, sudoku: list[list], tablero_lleno: list[list], contador_errores:int, cambio_anterior: bool) -> int:
+def sumar_errores(celda_seleccionada: tuple, sudoku: list[list], tablero_lleno: list[list], contador_errores:int, cambio_anterior: bool, matriz_booleana:list[list]) -> int:
     '''
     Compara el valor ingresado en la celda seleccionada con el valor correspondiente en el tablero completo.
 
@@ -336,27 +336,25 @@ def sumar_errores(celda_seleccionada: tuple, sudoku: list[list], tablero_lleno: 
         contador_errores (int): Número de errores contabilizados.
     '''
     # Inicializar las variables de retorno
-    nuevo_contador_errores = contador_errores
+
     nuevo_cambio_anterior = cambio_anterior
 
     if celda_seleccionada:  # Verifica que haya una celda seleccionada
         fila, col = celda_seleccionada
         
         # Llamar a manejar_entrada y obtener resultado y cambio_realizado
-        resultado, cambio_realizado = manejar_entrada(fila, col, sudoku)
+        resultado, cambio_realizado = manejar_entrada(fila, col, sudoku, matriz_booleana)
 
         # Solo incrementar el contador de errores si se realizó un cambio y no se contaron antes
         if cambio_realizado and not cambio_anterior:
             if resultado != tablero_lleno[fila][col] and resultado != 0:
-                nuevo_contador_errores += 1
+                contador_errores += 1
 
         # Actualizar el estado de cambio_anterior
         nuevo_cambio_anterior = cambio_realizado
 
     # Retornar el estado final de errores y cambio
-    return nuevo_contador_errores, nuevo_cambio_anterior
-
-
+    return contador_errores, nuevo_cambio_anterior
 
 
 def mostrar_texto(texto: str, x: int, y: int,ventana:pygame.display, fuente_texto: pygame.font, NEGRO:tuple) -> None: 
@@ -374,9 +372,9 @@ def mostrar_texto(texto: str, x: int, y: int,ventana:pygame.display, fuente_text
     Retorno:
         None: Esta función no devuelve ningún valor.
     '''
-    texto_superficie = fuente_texto.render(texto, True, NEGRO)
-    ventana.blit(texto_superficie, (x, y))
-    return texto_superficie
+    texto_superficie = fuente_texto.render(texto, True, NEGRO) # Renderiza el texto con la fuente y color proporcionados.
+    ventana.blit(texto_superficie, (x, y)) # Dibuja el texto renderizado en la ventana, en la posicion (x, y)
+    return texto_superficie   # Devuelve la superficie del texto para usarse en otros calculos
 
 def evento_click(x: int, y: int, w: int, h: int) -> bool:
     '''
@@ -526,9 +524,8 @@ def mostrar_popup_ganaste(ventana: pygame.Surface, fuente_texto: pygame.font.Fon
         clock.tick(30)  # Controlar la velocidad del bucle
 
     return resultado
-        
 
-    
+
 def actualizar_ultimo_click_dificultad(ultimo_clic:int, DELAY_CLIC:int) -> int:
     '''
     Actualiza el tiempo del último clic en el botón de dificultad, asegurando que 
@@ -574,14 +571,10 @@ def cambiar_dificultad(ultimo_clic_dificultad, dificultad, DELAY_CLIC: int, vent
         # Cambiar la dificultad
         if dificultad == "Facil":
             dificultad = "Medio"
-            print(dificultad)
         elif dificultad == "Medio":
-            dificultad = "Dificil"
-            print(dificultad)
-            
+            dificultad = "Dificil"   
         else:
             dificultad = "Facil"
-            print(dificultad)
             
         
         # Actualizar el botón de dificultad
@@ -873,6 +866,8 @@ def calcular_puntaje(dificultad:str, PUNTOS_BASE:int, contador_errores:int, PENA
         multiplicador_dificultad = 1.5
     else:
         multiplicador_dificultad = 2
+    
+
         
     puntaje_final = (PUNTOS_BASE - (contador_errores * PENALIZACION_ERROR) - (minutos * PENALIZACION_TIEMPO)) * multiplicador_dificultad
     

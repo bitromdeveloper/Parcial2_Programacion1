@@ -15,7 +15,7 @@ def crear_archivo(nombre_archivo) -> None:
         FileExistsError: Si el archivo ya existe, se muestra un mensaje indicando que no se puede crear nuevamente.
     """
     try:
-        with open(nombre_archivo, 'x') as archivo: #la 'x' abre un archivo para escritura solo si no existe.
+        with open(nombre_archivo, 'x') as archivo: # la 'x' abre un archivo para escritura solo si no existe.
             json.dump([], archivo) #crea lista vacia
     except FileExistsError: #si el archivo existe, tira "FileExistsError", por eso esta linea.
         print(f"El archivo {nombre_archivo} ya existe.")

@@ -30,9 +30,11 @@ while corriendo:
                                     temporizador, contador_errores, fuente_texto, BLANCO, FONDO_JUEGO, TABLERO_ANCHO, TABLERO_ALTO, MARGEN_IZQUIERDO, MARGEN_SUPERIOR, CELESTE, 
                                     AMARILLO_CLARO, GRIS_OSCURO, ROSA, ROSA_CLARO, tamanio_celda, TAMANIO_TABLERO, NEGRO, ROJO, AZUL, VALOR_BORDER_RADIUS,AMARILLO_OSCURO)
                     matriz_booleana = generar_matriz_booleana(sudoku)
+                    
                 elif evento_click(565, 280, 150, 50):  # Botón "Puntajes"
                     pantalla_actual = "puntajes"
                     ver_puntajes(ventana, fuente_texto, FONDO_PANTALLA_GANADORES, NEGRO, AZUL_CLARO, VALOR_BORDER_RADIUS, AMARILLO_OSCURO,"nombre_ganadores.json", BLANCO)
+
                 elif evento_click(565, 340, 150, 50):  # Botón "Dificultad"
                     dificultad =  cambiar_dificultad(ultimo_clic_dificultad,dificultad, DELAY_CLIC, ventana, BLANCO, GRIS, VALOR_BORDER_RADIUS,fuente_texto, NEGRO)
                     tablero_lleno = generar_tablero()
@@ -40,6 +42,7 @@ while corriendo:
                                     temporizador, contador_errores, fuente_texto, BLANCO, FONDO_JUEGO, TABLERO_ANCHO, TABLERO_ALTO, MARGEN_IZQUIERDO, MARGEN_SUPERIOR, CELESTE, 
                                         AMARILLO_CLARO, GRIS_OSCURO, ROSA, ROSA_CLARO, tamanio_celda, TAMANIO_TABLERO, NEGRO, ROJO, AZUL, VALOR_BORDER_RADIUS,AMARILLO_OSCURO)
                     matriz_booleana = generar_matriz_booleana(sudoku)
+
                 elif evento_click(565, 400, 150, 50):  # Botón "Salir"
                     salir()
             elif pantalla_actual == "juego": 
@@ -48,19 +51,24 @@ while corriendo:
                     col = (x - MARGEN_IZQUIERDO) // tamanio_celda
                     fila = (y - MARGEN_SUPERIOR) // tamanio_celda
                     celda_seleccionada = (fila, col) # Genera tupla de la celda seleccionada a partir de las coordenada del get_pos
+
                 elif evento_click(1060, 530, 170, 60): #Botón "Reiniciar"
+                    tablero_lleno = generar_tablero()
                     sudoku = jugar(tablero_lleno, dificultad,ventana,tablero_lleno, celda_seleccionada, matriz_booleana, fuente_numeros, 
                                     temporizador, contador_errores, fuente_texto, BLANCO, FONDO_JUEGO, TABLERO_ANCHO, TABLERO_ALTO, MARGEN_IZQUIERDO, MARGEN_SUPERIOR, CELESTE, 
                                     AMARILLO_CLARO, GRIS_OSCURO, ROSA, ROSA_CLARO, tamanio_celda, TAMANIO_TABLERO, NEGRO, ROJO, AZUL, VALOR_BORDER_RADIUS,AMARILLO_OSCURO)
-                    tablero_lleno = generar_tablero()
                     matriz_booleana = generar_matriz_booleana(sudoku)
                     contador_errores = 0 # Reinicia contador de errores
                     temporizador = 0 # Reincia temporizador
+
                 elif evento_click(1060, 600, 170, 60):  # Botón "Volver" dentro de la pantalla juego
                     pantalla_actual = "menu"
+
                 else:
                     celda_seleccionada = None #Si hace click en un lugar que no sea una celda o botón, saca el click de la celda o no marca nada.
+
             elif pantalla_actual == "puntajes":
+
                 if evento_click(550, 550, 150, 50):  # Botón "Volver"
                     pantalla_actual = "menu"
             
@@ -71,7 +79,7 @@ while corriendo:
     elif pantalla_actual == "juego":
         if contador_errores == None:
             contador_errores = 0
-        contador_errores, cambio_anterior = sumar_errores(celda_seleccionada, sudoku, tablero_lleno, contador_errores, cambio_anterior)
+        contador_errores, cambio_anterior = sumar_errores(celda_seleccionada, sudoku, tablero_lleno, contador_errores, cambio_anterior, matriz_booleana)
         if contador_errores > 3 and not mostrar_popup: #porque sino se repite en el bucle muchas veces el pop up
             mostrar_popup = True
             tiempo_inicio_popup = pygame.time.get_ticks()
